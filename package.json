@@ -1,18 +1,18 @@
 { 
-  "name": "Maze",
-  "version": "1.1.0",
-  "description" : "A two player Maze game developed in JavaScript, using Node.js, Socket.io and Express",
+  "name": "Sudoku-271013",
+  "version": "0.1",
+  "description" : "A multiplayer Sudoku game developed in JavaScript, using Node.js, Socket.io and Express",
   "readme": "README.md",
   
   "repository" :
   { "type" : "git"
-  , "url" : "https://github.com/VibhorKanojia/MAZE"
+  , "url" : "https://github.com/VibhorKanojia/Sudoku"
   },
 
   "author" :
   { "name" : "Vibhor Kanojia",
     "url" : "http://www.vibhor-kanojia.me",
-    "email" : "versatilevibhor@gmail.com"
+    "email" : "vibhor11493@gmail.com"
   },
 
   "engines": {
