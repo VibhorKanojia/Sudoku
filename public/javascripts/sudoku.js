@@ -16,25 +16,26 @@ function Cell(x, y){
     this.selected = false;
 };
 
-var camera, scene, renderer;
 var controls;
 var objects = [];
 var targets = { table: [], sphere: [], helix: [], grid: [] };
 var mode = "NORMAL";
 var mode_html;
 var selected_cell;
-
+var container;
 init();
-animate();
 
 function init() {
+	container = document.getElementById('container');
 
-	camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
-	camera.position.z = 3000;
-
-	scene = new THREE.Scene();
-
-	// table
+	container.style.width = "" + Math.min(window.innerWidth, window.innerHeight) + "px";
+	container.style.height = "" + Math.min(window.innerWidth, window.innerHeight) + "px";
+	if (window.innerWidth < window.innerHeight){
+		container.style.fontSize = "1.5vw";
+	}
+	else {
+		container.style.fontSize = "1.5vh";
+	}
 
 	for (var i = 0; i < cells.length; i++){
 		for (var j = 0 ; j < cells[0]. length; j++){
@@ -42,6 +43,8 @@ function init() {
 			var cell = document.createElement( 'div' );
 			cell.className = 'cell';
 			cell.id = "cell_" + i + j;
+			cell.style.backgroundColor = '#007F7F';
+
 
 			cell.addEventListener("click", function(){
 				curr_cell = cells[Number(this.id[5])][Number(this.id[6])];
@@ -84,48 +87,33 @@ function init() {
 
 
 			if (i == 0){
-				cells[i][j].posY = 950;
+				cells[i][j].posY = 5;
 			}
 			else {
 				cells[i][j].posX = cells[i-1][j].posX;
-				cells[i][j].posY = cells[i-1][j].posY - 210;
+				cells[i][j].posY = cells[i-1][j].posY + 6;
 				if (i == 3 || i == 6){
-					cells[i][j].posY -=10;
+					cells[i][j].posY +=1;
 				}
 			}
 			if (j == 0){
-				cells[i][j].posX = -1330;
+				cells[i][j].posX = 5;
 			}
 			else {
-				cells[i][j].posX =  cells[i][j-1].posX + 210;
+				cells[i][j].posX =  cells[i][j-1].posX + 6;
 				cells[i][j].posY = cells[i][j-1].posY;
 				if (j == 3 || j == 6){
-					cells[i][j].posX +=10;
+					cells[i][j].posX +=1;
 				}
 			}
 
-
-
-			var object = new THREE.CSS3DObject( cell );
-			object.name = "cell_" + i + j;
-			object.position.x = cells[i][j].posX;
-			object.position.y = cells[i][j].posY;
-			object.position.z = 0;
-			scene.add(object);
-			objects.push(object);
+			cell.style.left = cells[i][j].posX + "em";
+			cell.style.top = cells[i][j].posY + "em";
+			objects.push(cell);
+			container.appendChild(cell);
 		}
 	}
 
-	//
-
-	renderer = new THREE.CSS3DRenderer();
-	renderer.setSize( window.innerWidth, window.innerHeight );
-	document.getElementById( 'container' ).appendChild( renderer.domElement );
-
-
-	//
-
-	window.addEventListener( 'resize', onWindowResize, false );
 
 	mode_html = document.getElementById("mode");
 
@@ -197,8 +185,6 @@ function init() {
 		socket.emit('Update Grid', {"cells": cells, "selected_cell": selected_cell});
 	});
 
-	render();
-
 	socket = io();
 	socket.on('Update Grid', function(data){
         cells = data["cells"];
@@ -210,6 +196,8 @@ function init() {
         	selected_cell = undefined;
         }
     });
+
+    setInterval(function(){ updateCells() }, 500);
 }
 
 
@@ -218,21 +206,20 @@ function updateCells(){
 	mode_html.textContent = mode;
 	for (var i = 0; i < objects.length; i++){
 
-		var object = objects[i];
-		var cell = cells[Number(object.name[5])][Number(object.name[6])];
+		var cell_html = objects[i];
+		var cell = cells[Number(cell_html.id[5])][Number(cell_html.id[6])];
 		var x = cell.x;
 		var y = cell.y;
 
-		var cell_html = document.getElementById("cell_" + x + y);
 
 		if (cell.locked){
-			cell_html.style.backgroundColor = 'rgba(4,76,76)';
+			cell_html.style.backgroundColor = '#044C4C';
 		}
 		else if (cell.selected) {
-			cell_html.style.backgroundColor = 'rgba(55,144,165)';
+			cell_html.style.backgroundColor = '#3790A5';
 		}
 		else {
-			cell_html.style.backgroundColor = 'rgba(0,127,127)';
+			cell_html.style.backgroundColor = '#007F7F';
 		}
 
 		var value = document.getElementById("value_" + x + y);
@@ -261,33 +248,5 @@ function updateCells(){
 			}
 			value.textContent = "";
 		}
-
-		
-
-		
-
 	}
-}
-
-function onWindowResize() {
-
-	camera.aspect = window.innerWidth / window.innerHeight;
-	camera.updateProjectionMatrix();
-
-	renderer.setSize( window.innerWidth, window.innerHeight );
-
-	render();
-
-}
-
-function animate() {
-
-	requestAnimationFrame( animate );
-	render();
-
-}
-
-function render() {
-	renderer.render( scene, camera );
-	updateCells();
 }
