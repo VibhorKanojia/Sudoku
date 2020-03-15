@@ -6,7 +6,6 @@ var http = require('http').Server(app);
 var io = require('socket.io').listen(http);
 
 
-var clients = [];
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use("/styles",  express.static(__dirname + '/public/stylesheets'));
@@ -21,10 +20,13 @@ app.get('/', function (req, res) {
 io.on('connection', function(socket){
 
 	var client_ip_address = socket.request.connection._peername.address;
-	console.log(client_ip_address + " connected");
+	
+	socket.on('select', function(data){
+		socket.broadcast.emit('select', data);
+	});
 
-	socket.on('Update Grid', function(data){
-		socket.broadcast.emit('Update Grid', data);
+	socket.on('update', function(data){
+		socket.broadcast.emit('update', data);
 	});
 });
 

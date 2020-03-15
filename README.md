@@ -1,11 +1,10 @@
-A 2-player Maze game developed using Javascript & HTML5 Canvas.
-Node.js, Socket.io and Express framework is used for server-client communication.
-Maze is generated randomly using graph search alogithms.
-Some of the CSS effects and animation are taken directly from www.tympanus.net/codrops 
+A screenshared Sudoku game developed using Javascript.
+This allows multiple users to connect to the same Sudoku board and play together.
+Node.js, Socket.io and Express framework are used for server-client communication.
 
-Available at : mazed.herokuapp.com
+Available at : sudoku-17037.appspot.com
 
 ---------AUTHOR-------
 Name : Vibhor Kanojia
-Email : versatilevibhor@gmail.com
+Email : vibhor11493@gmail.com
 ----------------------

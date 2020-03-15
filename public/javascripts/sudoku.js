@@ -46,23 +46,12 @@ function init() {
 			cell.style.backgroundColor = '#007F7F';
 
 
+			// Handle click
 			cell.addEventListener("click", function(){
-				curr_cell = cells[Number(this.id[5])][Number(this.id[6])];
-				if (curr_cell.locked) {
-					return;
-				}
-				if (curr_cell.selected){
-					selected_cell = undefined;
-					curr_cell.selected = false;
-				}
-				else {
-					if (selected_cell){
-						selected_cell.selected = false;
-					}
-					curr_cell.selected = true;
-					selected_cell = curr_cell;
-				}
-				socket.emit('Update Grid', {"cells": cells, "selected_cell": selected_cell});
+				x = Number(this.id[5]);
+				y = Number(this.id[6]);
+				clickHandler(x, y);
+				socket.emit('select', {'x': x, 'y': y});
 			});
 
 
@@ -118,88 +107,108 @@ function init() {
 	mode_html = document.getElementById("mode");
 
 	document.addEventListener('keyup', function(event){
-		var keyval = event.keyCode - 48;
-		if (keyval >= 1 && keyval <= 9 && selected_cell){
-			if (mode == "NORMAL"){
-				if (selected_cell.value == keyval){
-					selected_cell.value = "";
-				}
-				else {
-					selected_cell.value = keyval;
-				}
-			}
-			else if (mode == "CENTER"){
-				index = selected_cell.center.indexOf(keyval);
-				if (index != -1){
-					selected_cell.center = selected_cell.center.replace(keyval, "");
-				}
-				else{
-					selected_cell.center += keyval;
-					selected_cell.center.split('').sort().join('');
-				}
-			}
-			else if (mode == "CORNER"){
-				index = selected_cell.corners.indexOf(keyval);
-				if (index != -1){
-					selected_cell.corners.splice(index, 1);
-				}
-				else if (selected_cell.corners.length < 4){
-					selected_cell.corners.push(keyval);
-					selected_cell.corners.sort();
-				}
-			}
-
-		}
-		// L
-		else if (keyval == 28){
-			for (var i = 0; i < cells.length; i++){
-				for (var j = 0; j < cells[0].length; j++){
-					if (cells[i][j].value){
-						cells[i][j].locked = true;
-					}
-				}
-			}
-		}
-
-		// Backspace
-		else if (keyval == -40){
-			selected_cell.value = "";
-			selected_cell.corners = [];
-			selected_cell.center = "";
-		}
-
-		// Z
-		else if (keyval == 42){
-			mode = "NORMAL";
-		}
-
-		// X
-		else if (keyval == 40){
-			mode = "CENTER";
-		}
-
-		// C
-		else if (keyval == 19){
-			mode = "CORNER";
-		}
-		socket.emit('Update Grid', {"cells": cells, "selected_cell": selected_cell});
+		keyval = event.keyCode - 48;
+		keyHandler(keyval);
+		socket.emit('update', keyval);
 	});
 
 	socket = io();
-	socket.on('Update Grid', function(data){
-        cells = data["cells"];
-        // Can't directly write selected_cell = data["selected_cell"] as it needs to refer to the exact cell object of THIS client.
-        if (data["selected_cell"]){
-        	selected_cell = cells[data["selected_cell"].x][data["selected_cell"].y];
-        }
-        else {
-        	selected_cell = undefined;
-        }
-    });
+	// Handle click made by another client
+	socket.on('select', function(data){
+		clickHandler(data['x'], data['y']);
+	});
 
-    setInterval(function(){ updateCells() }, 500);
+	socket.on('update', function(keyval){
+		keyHandler(keyval);
+	});
+
+    setInterval(function(){ updateCells() }, 200);
 }
 
+function keyHandler(keyval){
+	if (keyval >= 1 && keyval <= 9 && selected_cell){
+	if (mode == "NORMAL"){
+		if (selected_cell.value == keyval){
+			selected_cell.value = "";
+		}
+		else {
+			selected_cell.value = keyval;
+		}
+	}
+	else if (mode == "CENTER"){
+		index = selected_cell.center.indexOf(keyval);
+		if (index != -1){
+			selected_cell.center = selected_cell.center.replace(keyval, "");
+		}
+		else{
+			selected_cell.center += keyval;
+			selected_cell.center.split('').sort().join('');
+		}
+	}
+	else if (mode == "CORNER"){
+		index = selected_cell.corners.indexOf(keyval);
+		if (index != -1){
+			selected_cell.corners.splice(index, 1);
+		}
+		else if (selected_cell.corners.length < 4){
+			selected_cell.corners.push(keyval);
+			selected_cell.corners.sort();
+		}
+	}
+
+	}
+	// L
+	else if (keyval == 28){
+		for (var i = 0; i < cells.length; i++){
+			for (var j = 0; j < cells[0].length; j++){
+				if (cells[i][j].value){
+					cells[i][j].locked = true;
+				}
+			}
+		}
+	}
+
+	// Backspace
+	else if (keyval == -40){
+		selected_cell.value = "";
+		selected_cell.corners = [];
+		selected_cell.center = "";
+	}
+
+	// Z
+	else if (keyval == 42){
+		mode = "NORMAL";
+	}
+
+	// X
+	else if (keyval == 40){
+		mode = "CENTER";
+	}
+
+	// C
+	else if (keyval == 19){
+		mode = "CORNER";
+	}
+}
+
+
+function clickHandler(x, y){
+	curr_cell = cells[x][y];
+	if (curr_cell.locked) {
+		return;
+	}
+	if (curr_cell.selected){
+		selected_cell = undefined;
+		curr_cell.selected = false;
+	}
+	else {
+		if (selected_cell){
+			selected_cell.selected = false;
+		}
+		curr_cell.selected = true;
+		selected_cell = curr_cell;
+	}
+}
 
 
 function updateCells(){
